@@ -58,13 +58,6 @@ public class GameBar {
         }
         return sInstance;
     }
-    
-    public static synchronized void destroyInstance() {
-        if (sInstance != null) {
-            sInstance.cleanup();
-            sInstance = null;
-        }
-    }
 
     private static final String FPS_PATH          = "/sys/class/drm/sde-crtc-0/measured_fps";
     private static final String BATTERY_TEMP_PATH = "/sys/class/power_supply/battery/temp";
@@ -119,9 +112,6 @@ public class GameBar {
 
     private boolean mShowRamSpeed = false;
     private boolean mShowRamTemp = false;
-    
-    // Track if layout needs refresh
-    private boolean mLayoutChanged = false;
 
     private final Runnable mLongPressRunnable = new Runnable() {
         @Override
@@ -331,50 +321,23 @@ public class GameBar {
 
     public void hide() {
         if (!mIsShowing) return;
-        stopUpdates();
-        try {
-            if (mOverlayView != null && mWindowManager != null) {
-                mWindowManager.removeView(mOverlayView);
-                mOverlayView = null;
-            }
-        } catch (Exception e) {
-            // View might already be removed
+        mHandler.removeCallbacksAndMessages(null);
+        if (mOverlayView != null) {
+            mWindowManager.removeView(mOverlayView);
+            mOverlayView = null;
         }
-        mRootLayout = null;
-        mLayoutChanged = true; // Mark layout as changed
         mIsShowing = false;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             GameBarFpsMeter.getInstance(mContext).stop();
         }
     }
-    
-    private void stopUpdates() {
-        if (mHandler != null) {
-            mHandler.removeCallbacks(mUpdateRunnable);
-            mHandler.removeCallbacks(mLongPressRunnable);
-            mHandler.removeCallbacksAndMessages(null);
-        }
-    }
-    
-    public void cleanup() {
-        hide();
-        if (mHandler != null) {
-            mHandler.removeCallbacksAndMessages(null);
-        }
-        mGestureDetector = null;
-        mBgDrawable = null;
-        mLayoutParams = null;
-    }
 
     private void updateStats() {
         if (!mIsShowing || mRootLayout == null) return;
 
-        // Always clear views to prevent duplication
         mRootLayout.removeAllViews();
-        mLayoutChanged = false;
 
-        // Create fresh views each time
-        List<View> statViews = new ArrayList<>(10);
+        List<View> statViews = new ArrayList<>();
 
         // 1) FPS
         float fpsVal = GameBarFpsMeter.getInstance(mContext).getFps();
@@ -498,12 +461,8 @@ public class GameBar {
             );
         }
 
-        if (mLayoutParams != null && mOverlayView != null && mWindowManager != null) {
-            try {
-                mWindowManager.updateViewLayout(mOverlayView, mLayoutParams);
-            } catch (Exception e) {
-                // View might be in invalid state, ignore
-            }
+        if (mLayoutParams != null) {
+            mWindowManager.updateViewLayout(mOverlayView, mLayoutParams);
         }
     }
 
