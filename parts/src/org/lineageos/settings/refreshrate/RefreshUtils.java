@@ -209,10 +209,6 @@ public final class RefreshUtils {
         return state;
     }
 
-    public void clearAllPerAppSettings() {
-        mSharedPrefs.edit().remove(REFRESH_CONTROL).apply();
-    }
-
     protected void setRefreshRate(String packageName) {
         String value = getValue();
         String[] modes = value.split(":");
