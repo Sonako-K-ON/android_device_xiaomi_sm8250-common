@@ -20,16 +20,17 @@ import android.os.Bundle;
 import com.android.settingslib.collapsingtoolbar.CollapsingToolbarBaseActivity;
 import org.lineageos.settings.R;
 
-public class GameBarPerAppConfigActivity extends CollapsingToolbarBaseActivity {
+public class GameBarAppSelectorActivity extends CollapsingToolbarBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_bar_app_selector);
-        setTitle("Configure Per-App GameBar");
+        setTitle("Select Apps for GameBar");
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_frame, new GameBarPerAppConfigFragment())
+                .replace(R.id.content_frame, new GameBarAppSelectorFragment())
                 .commit();
         }
     }
-} 
+}
